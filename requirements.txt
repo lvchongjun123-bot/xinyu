@@ -1,0 +1,5 @@
+flask>=3.0
+mysql-connector-python>=8.0
+bcrypt>=4.0
+pyjwt>=2.0
+pywebview>=4.0

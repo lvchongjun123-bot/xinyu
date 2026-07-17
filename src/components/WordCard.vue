@@ -1,8 +1,11 @@
 <template>
-  <div 
-    class="word-card card" 
-    :class="{ mastered: wordData.mastered, playing: isPlaying }"
+  <div
+    class="word-card card"
+    :class="{ mastered: mastered, playing: isPlaying }"
+    role="button" :tabindex="0"
     @click="playByCard"
+    @keydown.enter.prevent="playByCard"
+    @keydown.space.prevent="playByCard"
   >
     <div class="word-header">
       <div class="word-info">
@@ -10,25 +13,25 @@
         <span v-show="showPhonetic" class="phonetic">{{ wordData.phonetic }}</span>
       </div>
       <div class="word-actions">
-        <button 
-          class="master-btn" 
+        <button
+          class="master-btn"
           @click.stop="toggleMaster"
-          :title="wordData.mastered ? '取消已掌握' : '标记已掌握'"
+          :aria-label="mastered ? '取消已掌握' : '标记已掌握'"
         >
-          {{ wordData.mastered ? '✅' : '⭕' }}
+          {{ mastered ? '✅' : '⭕' }}
         </button>
         <div class="pronunciation-btns">
-          <button 
-            class="pronunciation-btn" 
+          <button
+            class="pronunciation-btn"
             @click.stop="playWord('uk')"
-            title="英式发音"
+            aria-label="英式发音"
           >
             🇬🇧
           </button>
-          <button 
-            class="pronunciation-btn" 
+          <button
+            class="pronunciation-btn"
             @click.stop="playWord('us')"
-            title="美式发音"
+            aria-label="美式发音"
           >
             🇺🇸
           </button>
@@ -51,7 +54,9 @@ const props = defineProps({
   index: { type: Number, required: true },
   showPhonetic: { type: Boolean, default: true },
   showDefinition: { type: Boolean, default: true },
-  isPlaying: { type: Boolean, default: false }
+  isPlaying: { type: Boolean, default: false },
+  mastered: { type: Boolean, default: false },
+  imageUrl: { type: String, default: '' }
 })
 
 const emit = defineEmits(['toggle-master', 'play'])
@@ -65,32 +70,24 @@ const playByCard = () => emit('play', props.index, 'us')
 .word-card {
   padding: 20px;
   margin-bottom: 16px;
-  border-left: 4px solid #60a5fa;
+  border-left: 4px solid var(--primary);
   cursor: pointer;
 }
 
 .word-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .word-card.mastered {
-  border-left-color: #22c55e;
-  background: rgba(240, 253, 244, 0.85);
-}
-
-.dark .word-card.mastered {
-  background: rgba(22, 101, 52, 0.2);
+  border-left-color: var(--success);
+  background: var(--success-subtle);
 }
 
 .word-card.playing {
-  border-left-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.05);
-  transform: translateX(4px);
-}
-
-.dark .word-card.playing {
-  background: rgba(139, 92, 246, 0.15);
+  border-left-color: var(--accent-violet);
+  /* ponytail: subtle violet bg has no dedicated token; keep minimal */
+  background: var(--accent-violet-subtle);
 }
 
 .word-header {
@@ -109,21 +106,13 @@ const playByCard = () => emit('play', props.index, 'us')
 .word {
   font-size: 22px;
   font-weight: 700;
-  color: #1e293b;
-}
-
-.dark .word {
-  color: #f8fafc;
+  color: var(--foreground);
 }
 
 .phonetic {
   font-size: 16px;
-  color: #64748b;
-  font-family: 'Courier New', monospace;
-}
-
-.dark .phonetic {
-  color: #94a3b8;
+  color: var(--muted);
+  font-family: var(--font-mono);
 }
 
 .word-actions {
@@ -137,7 +126,7 @@ const playByCard = () => emit('play', props.index, 'us')
   height: 32px;
   border-radius: 50%;
   border: none;
-  background: rgba(34, 197, 94, 0.1);
+  background: var(--success-subtle);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -145,7 +134,7 @@ const playByCard = () => emit('play', props.index, 'us')
 
 .master-btn:hover {
   transform: scale(1.1);
-  background: rgba(34, 197, 94, 0.2);
+  filter: brightness(0.9);
 }
 
 .pronunciation-btns {
@@ -158,63 +147,56 @@ const playByCard = () => emit('play', props.index, 'us')
   height: 36px;
   border-radius: 50%;
   border: none;
-  background: rgba(96, 165, 250, 0.1);
+  background: var(--primary-subtle);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .pronunciation-btn:hover {
-  background: rgba(96, 165, 250, 0.2);
+  filter: brightness(0.9);
   transform: scale(1.05);
 }
 
 .pronunciation-btn:active {
-  background: #60a5fa;
-  color: white;
+  background: var(--primary);
+  color: var(--primary-foreground);
   transform: scale(0.95);
 }
 
 .definition {
   margin-top: 12px;
   padding-left: 12px;
-  border-left: 3px solid #e2e8f0;
-  color: #475569;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
   line-height: 1.6;
   font-size: 16px;
-}
-
-.dark .definition {
-  color: #cbd5e1;
-  border-left-color: #334155;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .sentence {
   margin-top: 8px;
   padding-left: 12px;
-  border-left: 3px solid #a78bfa;
-  color: #7c3aed;
+  border-left: 3px solid var(--accent-violet);
+  color: var(--accent-violet);
   line-height: 1.6;
   font-size: 14px;
   font-style: italic;
-}
-
-.dark .sentence {
-  color: #a78bfa;
-  border-left-color: #7c3aed;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .sentence-cn {
   margin-top: 4px;
   padding-left: 12px;
-  border-left: 3px solid #22c55e;
-  color: #16a34a;
+  border-left: 3px solid var(--success);
+  color: var(--success);
   line-height: 1.6;
   font-size: 14px;
-}
-
-.dark .sentence-cn {
-  color: #4ade80;
-  border-left-color: #22c55e;
 }
 </style>
